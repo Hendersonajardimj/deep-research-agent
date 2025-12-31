@@ -1,0 +1,7 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Brain/Research icon -->
+  <rect width="32" height="32" rx="6" fill="#007aff"/>
+  <path d="M16 8C13.2 8 11 10.2 11 13C11 14.5 11.6 15.8 12.6 16.7C12.2 17.1 12 17.6 12 18.2V20C12 21.1 12.9 22 14 22H18C19.1 22 20 21.1 20 20V18.2C20 17.6 19.8 17.1 19.4 16.7C20.4 15.8 21 14.5 21 13C21 10.2 18.8 8 16 8Z" fill="white"/>
+  <circle cx="16" cy="13" r="1.5" fill="#007aff"/>
+  <path d="M14 19H18V20H14V19Z" fill="#007aff"/>
+</svg>
