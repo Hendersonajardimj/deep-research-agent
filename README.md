@@ -25,19 +25,23 @@ A powerful AI-powered deep research tool built with SvelteKit, Mastra, and AI SD
    - Coordinates deep research tasks
    - Manages parallel execution
 
-2. **Deep Research Sub-Agents** (OpenAI Responses API)
-   - One agent per subtopic
-   - Comprehensive research execution
-   - Markdown report generation
-   - Optional PDF output
+2. **Deep Research Sub-Agents** (OpenAI Responses API with Background Mode)
+   - One research task per subtopic (5 total, run in parallel)
+   - Uses `background: true` for async execution (2-5 min per subtopic)
+   - Polling mechanism checks completion every 5 seconds
+   - Comprehensive research with web search and citations
+   - Markdown report generation with optional PDF output
 
 ## Tech Stack
 
-- **Frontend**: SvelteKit + Svelte 5
-- **AI Framework**: Mastra
-- **AI SDK**: Vercel AI SDK 6
-- **LLM Provider**: OpenAI (GPT-5.2 for orchestration, o4-mini-deep-research for deep research)
-- **Search**: Tavily API
+- **Frontend**: SvelteKit + Svelte 5 with `@ai-sdk/svelte` Chat class
+- **AI SDK**: Vercel AI SDK 6 (`ai` package)
+  - Server: `streamText()` with `stopWhen: stepCountIs(10)` for multi-step tool execution
+  - Client: `Chat` class with `DefaultChatTransport` for SSE streaming
+- **LLM Provider**: OpenAI
+  - Orchestrator: `gpt-5.2-2025-12-11` via `@ai-sdk/openai`
+  - Deep Research: `o4-mini-deep-research-2025-06-26` via Responses API (`/v1/responses`)
+- **Search**: Tavily API for initial context gathering
 - **PDF Generation**: Puppeteer + Marked
 - **Language**: TypeScript
 
@@ -190,22 +194,31 @@ PDF generation is optional per research task. To enable:
 
 ### Model Configuration
 
-Edit `src/lib/agents/orchestrator.ts` to change models:
-
+**Orchestrator** (`src/routes/api/chat/+server.ts`):
 ```typescript
-export const orchestratorAgent = new Agent({
+const openai = createOpenAI({ apiKey: openaiKey });
+
+const result = streamText({
   model: openai('gpt-5.2-2025-12-11'), // Change model here
-  // ...
+  tools: orchestratorAgent.tools,
+  system: orchestratorAgent.instructions,
+  stopWhen: stepCountIs(10), // Allow up to 10 tool call steps
 });
 ```
 
-Edit `src/lib/tools/deep-research.ts` for deep research model:
-
+**Deep Research** (`src/lib/tools/deep-research.ts`):
 ```typescript
-body: JSON.stringify({
-  model: 'o4-mini-deep-research-2025-06-26', // Change model here
-  // ...
-})
+// Uses OpenAI Responses API with background mode
+const response = await fetch('https://api.openai.com/v1/responses', {
+  method: 'POST',
+  body: JSON.stringify({
+    model: 'o4-mini-deep-research-2025-06-26', // Change model here
+    input: [{ role: 'user', content: [{ type: 'input_text', text: query }] }],
+    reasoning: { summary: 'auto' },
+    tools: [{ type: 'web_search_preview' }],
+    background: true // Async execution, poll for completion
+  })
+});
 ```
 
 ## Development

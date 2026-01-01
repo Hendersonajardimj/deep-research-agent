@@ -6,23 +6,45 @@ Project-specific guidance for automated agents working in this repository. This 
 
 - **Framework:** SvelteKit + Svelte 5 (TypeScript)
 - **AI layer:**
-  - Mastra `Agent` for orchestration and tools (`tavilySearch`, `deepResearch`)
-  - Vercel AI SDK 6 (`ai`) for chat streaming
-  - OpenAI models via `@ai-sdk/openai` and the Responses API
+  - Vercel AI SDK 6 (`ai`) for chat streaming with `streamText()` and `stopWhen: stepCountIs(10)`
+  - `@ai-sdk/svelte` Chat class for client-side SSE handling
+  - `@ai-sdk/openai` for GPT-5.2 orchestrator model
+  - OpenAI Responses API (`/v1/responses`) for deep research with background mode
 - **Key runtime paths:**
-  - `src/lib/agents/orchestrator.ts` – main Mastra agent configuration
+  - `src/lib/agents/orchestrator.ts` – agent configuration (tools, system prompt)
   - `src/lib/tools/tavily-search.ts` – Tavily web search tool
-  - `src/lib/tools/deep-research.ts` – deep research tool using OpenAI
+  - `src/lib/tools/deep-research.ts` – deep research tool using OpenAI Responses API
   - `src/lib/utils/file-operations.ts` – markdown file + frontmatter logic
   - `src/lib/utils/pdf-generator.ts` – PDF generation
-  - `src/routes/api/chat/+server.ts` – main chat API endpoint
+  - `src/routes/api/chat/+server.ts` – main chat API endpoint (AI SDK v6)
   - `src/routes/api/open-finder/+server.ts` – Finder integration
-  - `src/routes/+page.svelte` – main UI
+  - `src/routes/+page.svelte` – main UI with Chat class
 - **Runtime artifacts:**
   - Research reports: `research-output/<topic-slug>/*.md` (+ optional `*.pdf`)
   - Dev logs: `research-output/logs/dev-YYYY-MM-DD.jsonl`
 
 Agents should treat `WARP.md`, `PROJECT_SUMMARY.md`, and `CUSTOMIZATION.md` as **authoritative context** about architecture and customization.
+
+### Deep Research Workflow
+
+The deep research tool uses OpenAI's Responses API with **background mode**:
+
+```
+1. SUBMIT: POST /v1/responses with background: true
+   → Returns response ID + status: "queued"
+
+2. POLL: GET /v1/responses/{id} every 5 seconds
+   → Status cycles: "queued" → "in_progress" → "completed"
+
+3. EXTRACT: When status is "completed", extract content from response
+   → Save as markdown with frontmatter to research-output/
+```
+
+Key points:
+- Deep research takes 2-5 minutes per subtopic (runs autonomously, no clarifications)
+- All 5 subtopics execute in parallel
+- 10-minute timeout safeguard per subtopic
+- Progress logged to JSONL with poll counts and elapsed time
 
 ---
 

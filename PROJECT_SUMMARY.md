@@ -69,9 +69,12 @@ A fully functional deep research agent application that:
 - **TypeScript**: Type-safe development
 
 ### AI & Agents
-- **Mastra**: Agent framework for orchestration
-- **AI SDK 6**: Vercel's AI SDK for streaming and tool use
-- **OpenAI**: GPT-4o (orchestrator) and o3-mini (deep research)
+- **AI SDK 6**: Vercel's AI SDK for streaming (`streamText`, `stopWhen: stepCountIs(10)`)
+- **@ai-sdk/svelte**: Chat class for client-side SSE streaming
+- **@ai-sdk/openai**: OpenAI provider for orchestrator model
+- **OpenAI Models**:
+  - Orchestrator: `gpt-5.2-2025-12-11` via Chat Completions API
+  - Deep Research: `o4-mini-deep-research-2025-06-26` via Responses API with background mode
 
 ### Tools & Services
 - **Tavily API**: Web search for context gathering
@@ -116,17 +119,19 @@ deep-research-agent/
 ## Key Features Implemented
 
 ### 1. Orchestrator Agent
-- ✅ Mastra-powered agent with GPT-4o
+- ✅ AI SDK 6 with GPT-5.2-2025-12-11
+- ✅ Multi-step tool execution via `stopWhen: stepCountIs(10)`
 - ✅ Web search capability via Tavily
 - ✅ Outline generation (exactly 5 subtopics)
 - ✅ Human-in-the-loop approval workflow
 - ✅ Parallel deep research coordination
 
 ### 2. Deep Research Tool
-- ✅ OpenAI API integration (o3-mini model)
+- ✅ OpenAI Responses API (`o4-mini-deep-research-2025-06-26`)
+- ✅ Background mode with polling (handles 2-5 min research time)
 - ✅ Automatic retry with exponential backoff
-- ✅ Comprehensive research execution
-- ✅ Error handling and reporting
+- ✅ Comprehensive research with web search and citations
+- ✅ Error handling and timeout safeguards (10 min max)
 
 ### 3. File Management
 - ✅ Markdown generation with frontmatter metadata
@@ -192,16 +197,17 @@ Default to markdown because:
 
 ## What's Working
 
-1. ✅ Full SvelteKit app with AI SDK 6
-2. ✅ Mastra orchestrator agent
-3. ✅ Tavily web search integration
-4. ✅ OpenAI deep research with retry logic
-5. ✅ Markdown file generation with metadata
-6. ✅ PDF conversion capability
-7. ✅ Finder integration for macOS
-8. ✅ Real-time streaming UI
-9. ✅ Tool invocation progress display
-10. ✅ Environment variable configuration
+1. ✅ Full SvelteKit app with AI SDK 6 (`streamText`, `stopWhen`)
+2. ✅ GPT-5.2 orchestrator with multi-step tool execution
+3. ✅ @ai-sdk/svelte Chat class for client streaming
+4. ✅ Tavily web search integration
+5. ✅ OpenAI deep research with background mode + polling
+6. ✅ Markdown file generation with metadata and citations
+7. ✅ PDF conversion capability
+8. ✅ Finder integration for macOS
+9. ✅ Real-time streaming UI
+10. ✅ Tool invocation progress display
+11. ✅ Comprehensive JSONL logging for debugging
 
 ## Next Steps (Future Enhancements)
 
@@ -238,8 +244,8 @@ Default to markdown because:
 
 ### Dependencies
 - Used `--legacy-peer-deps` to resolve version conflicts
-- AI SDK 6 (latest) with Mastra (which uses AI SDK 4 internally)
-- Version conflicts are expected but don't affect functionality
+- AI SDK 6 with `@ai-sdk/svelte` and `@ai-sdk/openai`
+- Zod 4 for schema validation (AI SDK 6 compatible)
 
 ### Environment Setup
 Must set these environment variables:
@@ -259,9 +265,11 @@ npm run preview  # Preview production build
 ## Cost Considerations
 
 ### API Usage
-- **Orchestrator**: GPT-4o for outline generation (~$0.01-0.05 per query)
-- **Deep Research**: o3-mini × 5 subtopics (~$0.05-0.25 per full research)
-- **Web Search**: Tavily API (check your plan limits)
+- **Orchestrator**: GPT-5.2 for outline generation (~$0.01-0.05 per query)
+- **Deep Research**: o4-mini-deep-research × 5 subtopics
+  - Each subtopic uses web search (adds $0.01 per search call)
+  - Typical full research: ~$0.10-0.50 depending on complexity
+- **Web Search**: Tavily API for initial context (check your plan limits)
 
 ### Optimization Tips
 1. Use cheaper models during development (gpt-4o-mini)
@@ -297,18 +305,19 @@ npm run preview  # Preview production build
 
 ## Success Criteria Met
 
-✅ SvelteKit + AI SDK 6 + Mastra integration
-✅ Orchestrator agent with web search
-✅ Deep research via OpenAI API
-✅ 5-subtopic outline generation
+✅ SvelteKit + AI SDK 6 integration (v6 streaming, `stopWhen`, Chat class)
+✅ GPT-5.2 orchestrator with multi-step tool execution
+✅ Deep research via OpenAI Responses API with background mode
+✅ 5-subtopic outline generation with detailed descriptions
 ✅ Human-in-the-loop approval
-✅ Parallel execution with retry logic
-✅ Markdown report generation
+✅ Parallel execution with polling and retry logic
+✅ Markdown report generation with citations
 ✅ PDF generation capability
 ✅ Finder integration
-✅ Clean UI matching design
-✅ Real-time streaming
-✅ Comprehensive documentation
+✅ Clean UI with @ai-sdk/svelte Chat class
+✅ Real-time SSE streaming
+✅ Comprehensive JSONL logging
+✅ Full documentation
 
 ## Conclusion
 
